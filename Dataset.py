@@ -4,7 +4,7 @@ import numpy as np
 
 class Dataset():
 
-	def __init__(self, property_idx, trainset_fn, testset_fn, calibrset_fn, alpha = 0.1, n_train_states = 2000, n_cal_states = 1000, n_test_states = 100, hist_size = 50, test_hist_size = 2000, multiplier = 1):
+	def __init__(self, property_idx, comb_flag, trainset_fn, testset_fn, calibrset_fn, alpha = 0.1, n_train_states = 2000, n_cal_states = 1000, n_test_states = 100, hist_size = 50, test_hist_size = 2000, multiplier = 1):
 		self.trainset_fn = trainset_fn
 		self.testset_fn = testset_fn
 		self.calibrset_fn = calibrset_fn
@@ -16,6 +16,7 @@ class Dataset():
 		self.alpha = alpha
 		self.multiplier = multiplier
 		self.property_idx = property_idx
+		self.comb_flag = comb_flag
 		
 	def load_data(self):
 		self.load_train_data()
@@ -33,7 +34,10 @@ class Dataset():
 		if self.property_idx == -1: #-1 denotes the property wrt all variables
 			self.R_train = self.multiplier*data["rob"]
 		else:
-			self.R_train = self.multiplier*data["room_robs"][self.property_idx]
+			if self.comb_flag:
+				self.R_train = self.multiplier*data["couple_robs"][self.property_idx]
+			else:
+				self.R_train = self.multiplier*data["single_robs"][self.property_idx]
 			
 		self.x_dim = self.X_train.shape[1]
 		self.n_training_points = self.X_train.shape[0]
@@ -71,8 +75,10 @@ class Dataset():
 		if self.property_idx == -1: #-1 denotes the property wrt all variables
 			self.R_test = self.multiplier*data["rob"]
 		else:
-			self.R_test = self.multiplier*data["room_robs"][self.property_idx]
-		
+			if self.comb_flag:
+				self.R_test = self.multiplier*data["couple_robs"][self.property_idx]
+			else:
+				self.R_test = self.multiplier*data["single_robs"][self.property_idx]		
 		self.n_test_points = self.X_test.shape[0]
 		
 		R_test_hist = np.reshape(self.R_test, (self.n_test_states, self.test_hist_size))
@@ -106,8 +112,10 @@ class Dataset():
 		if self.property_idx == -1: #-1 denotes the property wrt all variables
 			self.R_cal = self.multiplier*data["rob"]
 		else:
-			self.R_cal = self.multiplier*data["room_robs"][self.property_idx]
-
+			if self.comb_flag:
+				self.R_cal = self.multiplier*data["couple_robs"][self.property_idx]
+			else:
+				self.R_cal = self.multiplier*data["single_robs"][self.property_idx]
 		self.n_cal_points = self.X_cal.shape[0]
 
 		R_cal_hist = np.reshape(self.R_cal, (self.n_cal_states, self.hist_size))
