@@ -35,10 +35,12 @@ class CQR():
 			return self.trained_qr_model(Variable(FloatTensor(inputs))).cpu().detach().numpy()
 		else:
 			interval1 = self.trained_qr_model[0](Variable(FloatTensor(inputs))).cpu().detach().numpy() 
-			interval2 = self.trained_qr_model[2](Variable(FloatTensor(inputs))).cpu().detach().numpy() 
+			interval2 = self.trained_qr_model[1](Variable(FloatTensor(inputs))).cpu().detach().numpy() 
 			pis = []
 			for i in range(inputs.shape[0]):
-				pis.append(min(interval1[0],interval2[0]), min(interval1[1],interval2[1]))
+				# LB = min of the lbs 
+				# UB = min of the ubs
+				pis.append([min(interval1[i][0],interval2[i][0]), min(interval1[i][1],interval2[i][1])]) 
 
 			return np.array(pis) 
 
@@ -110,15 +112,34 @@ class CQR():
 		c = 0
 		for i in range(n_points):
 			for j in range(self.test_hist_size):
-				# if it lies in at least one of the two intervals
+				# if it lies in at least one of the two intervals, i.e. in the union
 				if (y_test_hist[i,j] >= test_pred_interval1[i,0] and y_test_hist[i, j] <= test_pred_interval1[i,-1]) or (y_test_hist[i,j] >= test_pred_interval2[i,0] and y_test_hist[i, j] <= test_pred_interval2[i,-1]):
 					c += 1
 		coverage = c/(n_points*self.test_hist_size)
 
-		efficiency = np.mean(np.abs(test_pred_interval[:,-1]-test_pred_interval[:,0]))
+		efficiency = np.mean(self.measure_efficiency_union(test_pred_interval1,test_pred_interval2))
 
 		return coverage, efficiency
 
+	def measure_efficiency_union(self, I1, I2):
+		L1 = I1[:,1]-I1[:,0]
+		L2 = I2[:,1]-I2[:,0]
+		
+		union_len = []
+		for i in range(len(I1)):
+			if I1[i,0] < I2[i,0]: 
+				len_intersection = I1[i,1]-I2[i,0]
+				if len_intersection > 0:
+					union_len.append(L1[i]+L2[i]-len_intersection)
+				else:	 
+					union_len.append(L1[i]+L2[i])
+			else:
+				len_intersection = I2[i,1]-I1[i,0]
+				if len_intersection > 0:
+					union_len.append(L1[i]+L2[i]-len_intersection)
+				else:	 
+					union_len.append(L1[i]+L2[i])
+		return np.array(union_len)
 
 	def compute_accuracy_and_uncertainty(self, test_pred_interval, L_test):
 
@@ -155,7 +176,7 @@ class CQR():
 		return correct/n_points, uncertain/n_points, wrong/n_points
 
 
-	def plot_results(self, y_test, test_pred_interval, title_string, plot_path):
+	def plot_results(self, y_test, test_pred_interval, title_string, plot_path, extra_info = ''):
 
 		n_quant = test_pred_interval.shape[1]
 
@@ -173,5 +194,5 @@ class CQR():
 		
 		plt.tight_layout()
 		plt.title(title_string)
-		fig.savefig(plot_path+"/"+title_string+".png")
+		fig.savefig(plot_path+"/"+title_string+extra_info+".png")
 		plt.close()

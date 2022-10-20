@@ -13,7 +13,7 @@ np.random.seed(0)
 parser = argparse.ArgumentParser()
 parser.add_argument("--model_dim", default=2, type=int, help="Dimension of the model")
 parser.add_argument("--model_prefix", default="MRH", type=str, help="Prefix of the model name")
-parser.add_argument("--n_epochs", default=200, type=int, help="Nb of training epochs for QR")
+parser.add_argument("--n_epochs", default=500, type=int, help="Nb of training epochs for QR")
 parser.add_argument("--n_hidden", default=20, type=int, help="Nb of hidden nodes per layer")
 parser.add_argument("--batch_size", default=512, type=int, help="Batch size")
 parser.add_argument("--lr", default=0.0005, type=float, help="Learning rate")
@@ -21,13 +21,13 @@ parser.add_argument("--qr_training_flag", default=False, type=eval, help="traini
 parser.add_argument("--xavier_flag", default=False, type=eval, help="Xavier random weights initialization")
 parser.add_argument("--scheduler_flag", default=False, type=eval, help="scheduler flag")
 parser.add_argument("--opt", default="Adam", type=str, help="Optimizer")
-parser.add_argument("--dropout_rate", default=0.2, type=float, help="Drop-out rate")
+parser.add_argument("--dropout_rate", default=0.1, type=float, help="Drop-out rate")
 parser.add_argument("--alpha", default=0.1, type=float, help="quantiles significance level")
 parser.add_argument("--comb_idx", default=0, type=int, help="Identifier of the combination of properteies to monitor")
 args = parser.parse_args()
 print(args)
 
-print(torch.cuda.device_count())
+#print(torch.cuda.device_count())
 
 model_name = args.model_prefix+str(args.model_dim)
 
@@ -57,8 +57,8 @@ idx_str1 = f'CQR_#{prop_idxs[0]}_Dropout{args.dropout_rate}_multiout_opt=_{args.
 idx_str2 = f'CQR_#{prop_idxs[1]}_Dropout{args.dropout_rate}_multiout_opt=_{args.n_hidden}hidden_{args.n_epochs}epochs_{nb_quantiles}quantiles_3layers_alpha{args.alpha}_lr{args.lr}'
 
 
-dataset = Dataset(property_idx=property_idx, comb_flag=True, trainset_fn=trainset_fn, testset_fn=testset_fn, 
-			calibrset_fn=calibrset_fn, alpha=alpha, n_train_states=n_train_states, n_cal_states=n_cal_states, 
+dataset = Dataset(property_idx=args.comb_idx, comb_flag=True, trainset_fn=trainset_fn, testset_fn=testset_fn, 
+			calibrset_fn=calibrset_fn, alpha=args.alpha, n_train_states=n_train_states, n_cal_states=n_cal_states, 
 			n_test_states=n_test_states, hist_size=cal_hist_size, test_hist_size=test_hist_size)
 dataset.load_data()
 
@@ -72,42 +72,40 @@ print(f"--------Property idxs = {prop_idxs}")
 
 # Obtain CQR intervals given the trained QR
 cqr = CQR(dataset.X_cal, dataset.R_cal, (qr1.qr_model,qr2.qr_model), test_hist_size = test_hist_size, cal_hist_size = cal_hist_size, comb_flag= True)
-cpi_test, pi_test = cqr.get_cpi(dataset.X_test, pi_flag = True)
-
-print("shape: ", cpi_test.shape, pi_test.shape)
+cpi_test = cqr.get_cpi(dataset.X_test, pi_flag = False)
 
 
-cqr.plot_results(dataset.R_test, pi_test, "QR_interval", qr.results_path)
-pi_coverage, pi_efficiency = cqr.get_coverage_efficiency(dataset.R_test, pi_test)
-print("pi_coverage = ", pi_coverage, "pi_efficiency = ", pi_efficiency)
-pi_correct, pi_uncertain, pi_wrong = cqr.compute_accuracy_and_uncertainty(pi_test, dataset.L_test)
-print("pi_correct = ", pi_correct, "pi_uncertain = ", pi_uncertain, "pi_wrong = ", pi_wrong)
-
-cqr.plot_results(dataset.R_test, cpi_test, "CQR_interval", qr.results_path)
+cqr.plot_results(dataset.R_test, cpi_test, "CQR_interval", qr1.results_path, extra_info=f'_comb{args.comb_idx}_pair={prop_idxs}')
 cpi_coverage, cpi_efficiency = cqr.get_coverage_efficiency(dataset.R_test, cpi_test)
 print("cpi_coverage = ", cpi_coverage, "cpi_efficiency = ", cpi_efficiency)
 cpi_correct, cpi_uncertain, cpi_wrong = cqr.compute_accuracy_and_uncertainty(cpi_test, dataset.L_test)
 print("cpi_correct = ", cpi_correct, "cpi_uncertain = ", cpi_uncertain, "cpi_wrong = ", cpi_wrong)
 
+dataset1 = Dataset(property_idx=prop_idxs[0], comb_flag=False, trainset_fn=trainset_fn, testset_fn=testset_fn, 
+			calibrset_fn=calibrset_fn, alpha=args.alpha, n_train_states=n_train_states, n_cal_states=n_cal_states, 
+			n_test_states=n_test_states, hist_size=cal_hist_size, test_hist_size=test_hist_size)
+dataset1.load_data()
+dataset2 = Dataset(property_idx=prop_idxs[1], comb_flag=False, trainset_fn=trainset_fn, testset_fn=testset_fn, 
+			calibrset_fn=calibrset_fn, alpha=args.alpha, n_train_states=n_train_states, n_cal_states=n_cal_states, 
+			n_test_states=n_test_states, hist_size=cal_hist_size, test_hist_size=test_hist_size)
+dataset2.load_data()
 
 print("-------------Statical guarantees of the union")
-cqr1 = CQR(dataset.X_cal, dataset.R_cal, qr1.qr_model, test_hist_size = test_hist_size, cal_hist_size = cal_hist_size, comb_flag= False)
-cpi1 = cqr.get_cpi(dataset.X_test)
-cqr2 = CQR(dataset.X_cal, dataset.R_cal, qr2.qr_model, test_hist_size = test_hist_size, cal_hist_size = cal_hist_size, comb_flag= False)
-cpi2 = cqr.get_cpi(dataset.X_test)
+cqr1 = CQR(dataset1.X_cal, dataset1.R_cal, qr1.qr_model, test_hist_size = test_hist_size, cal_hist_size = cal_hist_size, comb_flag= False)
+cpi1 = cqr1.get_cpi(dataset1.X_test)
+cqr2 = CQR(dataset2.X_cal, dataset2.R_cal, qr2.qr_model, test_hist_size = test_hist_size, cal_hist_size = cal_hist_size, comb_flag= False)
+cpi2 = cqr2.get_cpi(dataset2.X_test)
 
 union_coverage, union_efficiency = cqr.get_coverage_efficiency_coupled(dataset.R_test, cpi1, cpi2)
 print("union_cpi_coverage = ", union_coverage, "union_cpi_efficiency = ", union_efficiency)
 
 
-results_list = ["\n Quantiles = ", str(quantiles), "\n Id = ", idx_str, "\n tau = ", str(cqr.tau),
-"\n pi_coverage = ", str(pi_coverage), "\n pi_efficiency = ", str(pi_efficiency),
-"\n pi_correct = ", str(pi_correct), "\n pi_uncertain = ", str(pi_uncertain), "\n pi_wrong = ", str(pi_wrong),
+results_list = ["\n Quantiles = ", str(quantiles), "\n Id1 = ", idx_str1,"\n Id2 = ", idx_str2, "\n tau = ", str(cqr.tau),
 "\n cpi_coverage = ", str(cpi_coverage), "\n cpi_efficiency = ", str(cpi_efficiency),
 "\n cpi_correct = ", str(cpi_correct), "\n cpi_uncertain = ", str(cpi_uncertain), "\n cpi_wrong = ", str(cpi_wrong),
 "\n union_cpi_coverage = ", str(union_coverage), "\n union_cpi_efficiency = ", str(union_efficiency)]
 
-save_results_to_file(results_list, qr1.results_path, extra_info=f'comb{comb_idx}_pair={prop_idxs}')
+save_results_to_file(results_list, qr1.results_path, extra_info=f'_comb{args.comb_idx}_pair={prop_idxs}')
 print(qr1.results_path)
 
 # Reminder: we save results in the folder of the first variable in the pair
