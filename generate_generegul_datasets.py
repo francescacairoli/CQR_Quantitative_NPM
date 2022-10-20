@@ -8,8 +8,8 @@ args = parser.parse_args()
 datasets = ['train', 'calibration','test']
 nb_points = [1000*args.nb_genes, 500*args.nb_genes, 100*args.nb_genes]
 nb_trajs_per_state = [50, 50, 500]
-#nb_points = [10*args.nb_genes, 5*args.nb_genes, 10*args.nb_genes]
-#nb_trajs_per_state = [5, 5, 50]
+#nb_points = [10*args.nb_genes]#, 5*args.nb_genes, 10*args.nb_genes
+#nb_trajs_per_state = [10]#, 5, 50
 
 for ds in range(len(datasets)):
 

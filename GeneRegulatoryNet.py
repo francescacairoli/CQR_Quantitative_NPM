@@ -27,8 +27,8 @@ class GeneRegulatoryNet(object):
 		self.h = nb_genes
 		self.state_dim = 2*nb_genes
 		self.n_modes = 2**nb_genes
-		self.dt = 0.1  
-		self.N = 1000
+		self.dt = 0.5  
+		self.N = 500
 		self.nb_of_transitions = 2*nb_genes
 		self.var_names = [f'X{k}' for k in range(nb_genes)]
 
@@ -43,11 +43,12 @@ class GeneRegulatoryNet(object):
 				R[i] = self.c[i]-self.d[i]*x[i]
 		return R
 
-	def get_infinitesimal_generator(self, x):
-		Q = np.zeros((self.h*2, self.h*2))
+	def get_infinitesimal_generator(self, x, q):
+		Q = np.zeros((self.h*2, self.h*2)) # 2 possibles gene states (active, inactive)
 		for i in range(self.h):
 			Q[2*i,2*i+1] = self.k_unbind[i] #activation event of gene i
-			Q[2*i+1,2*i] = self.k_bind[i]*x[i-1]#inhibition event of gene i
+			Q[2*i+1,2*i] = self.k_bind[i]*x[i-1]*q[i]#inhibition event of gene i 
+			#(if gene i is already inactive this transition cannot take place)
 		return Q
 
 	def net_layout(self):
@@ -59,8 +60,7 @@ class GeneRegulatoryNet(object):
 		self.d = params['d']
 		self.k_bind = params['binding_rates']
 		self.k_unbind = params['unbinding_rates']
-		self.ranges = np.concatenate((np.array([1,params['x_ub']])*np.ones((self.h,2)),np.array([0,2])*np.ones((self.h,2))), axis=1)
-		print('self.ranges = ',self.ranges,self.ranges.shape)
+		self.ranges = np.array([1,params['x_ub']])*np.ones((self.h,2))
 		self.safe_ranges = self.ranges
 
 	def initialize_settings(self, params):
@@ -85,7 +85,7 @@ class GeneRegulatoryNet(object):
 	def discrete_dynamics(self, x, q):
 		# stochastic dynamics (jumping chain and exponential times)
 		# similar to SSA simulation
-		Q = self.get_infinitesimal_generator(x)
+		Q = self.get_infinitesimal_generator(x, q)
 		rates = np.sum(Q, axis=1)
 		total_rate = np.sum(Q)
 		trans_index = np.random.choice(self.nb_of_transitions, p=rates / total_rate)
@@ -162,7 +162,7 @@ class GeneRegulatoryNet(object):
 		for i in range(self.n_samples):
 			fig, axs = plt.subplots(self.h,2, figsize=(12, 9))
 			for s in range(self.h):
-				for j in range(2):#self.n_trajs_per_state
+				for j in range(10):#self.n_trajs_per_state
 					times = np.arange(len(trajs_reshaped[i, j, :, s]))
 					axs[s][0].plot(self.timeline, trajs_reshaped[i, j, :, s], c=colors[s])
 					axs[s][0].set_ylabel(self.protein_labels[s])
@@ -173,7 +173,7 @@ class GeneRegulatoryNet(object):
 			axs[-1][0].set_xlabel("time")
 			axs[-1][1].set_xlabel("time")
 			plt.tight_layout()
-			plt.savefig(self.model_name+f"{self.h}/"+ds_name+f"_trajs_{i}.png")
+			plt.savefig(self.model_name+f"{self.h}/plots/"+ds_name+f"_trajs_{i}.png")
 			plt.close()
 
 	def compute_robustness(self, trajs):

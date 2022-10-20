@@ -5,21 +5,21 @@ def get_parameters(nb_genes):
 	if nb_genes == 2:
 		# production rates
 		a = [0.0,0.0] # inactive
-		c = 10*[0.75,1] # active
+		c = 600*[1,0.4] # active
 		# degradation rates
-		b = [0.001,0.0001] # inactive
-		d = [0.001,0.0001] # active
+		b = [0.001,0.0004] # inactive
+		d = [0.001,0.0004] # active
 		binding_rates = [0.001,0.001]#[0.008,0.008]
-		unbinding_rates = 100*[0.1,0.1]#[0.02,0.01]
+		unbinding_rates = [0.01,0.01]#[0.02,0.01]
 	elif nb_genes == 4:
 		# production rates
 		a = [0.0,0.0,0.0,0.0] # inactive
-		c = 10*[0.25, 0.5, 0.75, 1] # active
+		c = 600*[1,0.8,0.6,0.4] # active
 		# degradation rates
-		b = [0.001,0.0001,0.001,0.0001] # inactive
-		d = [0.001,0.0001,0.001,0.0001] # active
+		b = [0.001,0.0008,0.006,0.0004] # inactive
+		d = [0.001,0.0008,0.006,0.0004] # active
 		binding_rates = [0.001,0.001,0.001,0.001]#[0.008,0.008]
-		unbinding_rates = 100*[0.1,0.1,0.1,0.1]#[0.02,0.01]
+		unbinding_rates = [0.01,0.01,0.01,0.01]#[0.02,0.01]
 	else:
 		a,b,c,d,binding_rates,unbinding_rates,x_ub = 0,0,0,0,0,0,0
 
