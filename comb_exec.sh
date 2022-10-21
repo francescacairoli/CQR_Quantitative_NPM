@@ -20,9 +20,9 @@ NB_COMB=6
 #######
 # run #
 #######
-
+counter=0
 for i in 0 1 2 3 4 5 
 do
 	echo i: $i
-	python comb_stoch_run_cqr.py --comb_idx $i --model_prefix $MODEL_PREFIX --model_dim $MODEL_DIM >> $OUT 2>&1
+	python comb_stoch_run_cqr.py --comb_calibr_flag False --comb_idx $i --model_prefix $MODEL_PREFIX --model_dim $MODEL_DIM >> $OUT 2>&1
 done

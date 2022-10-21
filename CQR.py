@@ -5,7 +5,7 @@ import scipy.special
 import scipy.spatial
 from numpy.random import rand
 import matplotlib.pyplot as plt
-plt.rcParams.update({'font.size': 22})
+plt.rcParams.update({'font.size': 24})
 from torch.autograd import Variable
 
 cuda = True if torch.cuda.is_available() else False
@@ -40,7 +40,7 @@ class CQR():
 			for i in range(inputs.shape[0]):
 				# LB = min of the lbs 
 				# UB = min of the ubs
-				pis.append([min(interval1[i][0],interval2[i][0]), min(interval1[i][1],interval2[i][1])]) 
+				pis.append([min(interval1[i][0],interval2[i][0]), min(interval1[i][-1],interval2[i][-1])]) 
 
 			return np.array(pis) 
 
@@ -150,6 +150,7 @@ class CQR():
 		correct = 0
 		wrong = 0
 		uncertain = 0
+		fp = 0
 
 		for i in range(n_points):
 			
@@ -165,6 +166,8 @@ class CQR():
 					correct += 1
 				else:
 					wrong +=1
+					if test_pred_interval[i,0] > 0:
+						fp+= 1
 			else: # sign -1
 				if test_pred_interval[i,-1] <= 0 and test_pred_interval[i,0] < 0:
 					correct += 1
@@ -172,8 +175,9 @@ class CQR():
 					uncertain += 1
 				else:
 					wrong +=1
+					fp += 1
 
-		return correct/n_points, uncertain/n_points, wrong/n_points
+		return correct/n_points, uncertain/n_points, wrong/n_points, fp/n_points
 
 
 	def plot_results(self, y_test, test_pred_interval, title_string, plot_path, extra_info = ''):
@@ -191,8 +195,7 @@ class CQR():
 				plt.plot(xline, test_pred_interval[:n_points_to_plot,i], 'r', alpha = 0.4)
 		plt.plot(xline, np.zeros(n_points_to_plot), '-.', color='b', alpha = 0.2)
 		plt.fill_between(xline, test_pred_interval[:n_points_to_plot,0], test_pred_interval[:n_points_to_plot,-1], color = 'r', alpha = 0.1)
-		
-		plt.tight_layout()
 		plt.title(title_string)
+		plt.tight_layout()
 		fig.savefig(plot_path+"/"+title_string+extra_info+".png")
 		plt.close()
