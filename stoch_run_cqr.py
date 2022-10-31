@@ -73,26 +73,24 @@ else:
 cqr = CQR(dataset.X_cal, dataset.R_cal, qr.qr_model, test_hist_size = test_hist_size, cal_hist_size = cal_hist_size)
 cpi_test, pi_test = cqr.get_cpi(dataset.X_test, pi_flag = True)
 
-print("shape: ", cpi_test.shape, pi_test.shape)
-
-cqr.plot_results(dataset.R_test, pi_test, "QR_interval", qr.results_path)
 pi_coverage, pi_efficiency = cqr.get_coverage_efficiency(dataset.R_test, pi_test)
 print("pi_coverage = ", pi_coverage, "pi_efficiency = ", pi_efficiency)
-pi_correct, pi_uncertain, pi_wrong = cqr.compute_accuracy_and_uncertainty(pi_test, dataset.L_test)
-print("pi_correct = ", pi_correct, "pi_uncertain = ", pi_uncertain, "pi_wrong = ", pi_wrong)
+pi_correct, pi_uncertain, pi_wrong, pi_fp = cqr.compute_accuracy_and_uncertainty(pi_test, dataset.L_test)
+print("pi_correct = ", pi_correct, "pi_uncertain = ", pi_uncertain, "pi_wrong = ", pi_wrong, "pi_fp = ", pi_fp)
 
-cqr.plot_results(dataset.R_test, cpi_test, "CQR_interval", qr.results_path)
 cpi_coverage, cpi_efficiency = cqr.get_coverage_efficiency(dataset.R_test, cpi_test)
 print("cpi_coverage = ", cpi_coverage, "cpi_efficiency = ", cpi_efficiency)
-cpi_correct, cpi_uncertain, cpi_wrong = cqr.compute_accuracy_and_uncertainty(cpi_test, dataset.L_test)
-print("cpi_correct = ", cpi_correct, "cpi_uncertain = ", cpi_uncertain, "cpi_wrong = ", cpi_wrong)
+cpi_correct, cpi_uncertain, cpi_wrong, cpi_fp = cqr.compute_accuracy_and_uncertainty(cpi_test, dataset.L_test)
+print("cpi_correct = ", cpi_correct, "cpi_uncertain = ", cpi_uncertain, "cpi_wrong = ", cpi_wrong, "cpi_fp = ", cpi_fp)
+
+cqr.plot_errorbars(dataset.R_test, pi_test, cpi_test, "predictive intervals", qr.results_path, 'pred_interval')
 
 
 results_list = ["\n Quantiles = ", str(quantiles), "\n Id = ", idx_str, "\n tau = ", str(cqr.tau),
 "\n pi_coverage = ", str(pi_coverage), "\n pi_efficiency = ", str(pi_efficiency),
-"\n pi_correct = ", str(pi_correct), "\n pi_uncertain = ", str(pi_uncertain), "\n pi_wrong = ", str(pi_wrong),
+"\n pi_correct = ", str(pi_correct), "\n pi_uncertain = ", str(pi_uncertain), "\n pi_wrong = ", str(pi_wrong),"\n pi_fp = ", str(pi_fp),
 "\n cpi_coverage = ", str(cpi_coverage), "\n cpi_efficiency = ", str(cpi_efficiency),
-"\n cpi_correct = ", str(cpi_correct), "\n cpi_uncertain = ", str(cpi_uncertain), "\n cpi_wrong = ", str(cpi_wrong)]
+"\n cpi_correct = ", str(cpi_correct), "\n cpi_uncertain = ", str(cpi_uncertain), "\n cpi_wrong = ", str(cpi_wrong),"\n cpi_fp = ", str(cpi_fp)]
 
 save_results_to_file(results_list, qr.results_path)
 print(qr.results_path)

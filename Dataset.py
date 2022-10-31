@@ -85,10 +85,13 @@ class Dataset():
 		
 		L_test = np.zeros((self.n_test_states,3)) #{-1,0,1}
 		C_test = np.empty(self.n_test_states)
+		
+		widths = np.empty(self.n_test_states)
 		for i in range(self.n_test_states):
 			lower_yi = np.quantile(R_test_hist[i], self.alpha/2)
 			upper_yi = np.quantile(R_test_hist[i], 1-self.alpha/2)
 
+			widths[i] = upper_yi-lower_yi
 			if lower_yi >= 0:
 				L_test[i, 2] = 1
 				C_test[i] = 2
@@ -98,6 +101,8 @@ class Dataset():
 			else:
 				L_test[i, 1] = 1
 				C_test[i] = 1
+
+		print('>>>> test set avg interval width: ', np.mean(widths))
 		self.L_test = L_test#np.repeat(L_test, self.test_hist_size, axis=0)
 		self.C_test = C_test
 

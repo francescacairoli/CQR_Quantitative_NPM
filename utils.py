@@ -1,20 +1,3 @@
-
-def import_determ_filenames(model_name):
-
-	n_train_states = 20000
-	n_cal_states = 10000
-	n_test_states = 10000
-
-	trainset_fn = "Datasets/"+model_name+"_train_set_{}points_new.pickle".format(n_train_states)
-	testset_fn = "Datasets/"+model_name+"_test_set_{}points_new.pickle".format(n_test_states)
-	calibrset_fn = "Datasets/"+model_name+"_calibration_set_{}points_new.pickle".format(n_cal_states)
-
-	print(trainset_fn)
-	print(testset_fn)
-	print(calibrset_fn)
-
-	return trainset_fn, calibrset_fn, testset_fn, (n_train_states, n_cal_states, n_test_states)
-
 def import_filenames_w_dim(model_name, dim):
 
 	n_train_states = dim*1000

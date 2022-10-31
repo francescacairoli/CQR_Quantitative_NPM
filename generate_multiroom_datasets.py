@@ -1,5 +1,7 @@
-from MultiRoomHeating import *
+import pickle
 import argparse
+from utils import * # import-export methods
+from MultiRoomHeating import *
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--nb_rooms", default=2, type=int, help="Nb of rooms")
@@ -13,31 +15,35 @@ nb_trajs_per_state = [50, 50, 500]
 
 for ds in range(len(datasets)):
 
+	
 	model = MultiRoomHeating(args.nb_rooms)
 	params = utils.get_parameters(args.nb_rooms)
 	model.initialize_settings(params)
 
-	print(nb_points[ds])
 	states = model.sample_rnd_states(nb_points[ds])
 	start_time = time.time()
 	trajs = model.gen_trajectories(states, nb_trajs_per_state[ds])
 	end_time = time.time()-start_time
-	print(trajs.shape)
 	print(f'Time needed to generate {nb_points[ds]*nb_trajs_per_state[ds]} trajectories = {end_time}')
-	#model.plot_trajectories(trajs, datasets[ds])
 
-	xmax = np.max(np.max(trajs, axis = 0), axis = 0)
-	xmin = np.min(np.min(trajs, axis = 0), axis = 0)
-	print("--- xmin, xmax = ", xmin, xmax)
-	
+	if datasets[ds] == 'train':
+		xmax = np.max(np.max(trajs, axis = 0), axis = 0)
+		xmin = np.min(np.min(trajs, axis = 0), axis = 0)
+	else:
+		trainset_fn = f'Datasets/MRH{args.nb_rooms}_'+'train'+f'_set_{nb_points[ds]}x{nb_trajs_per_state[ds]}points.pickle'
+		with open(trainset_fn, 'rb') as handle:
+			train_data = pickle.load(handle)
+		handle.close()
+		xmin, xmax = train_data["x_minmax"]
+
+
 	trajs_scaled = -1+2*(trajs-xmin)/(xmax-xmin)
 	states_scaled = -1+2*(states-xmin)/(xmax-xmin)
 
 	scaled_safety_region = -1+2*(model.safe_ranges.T-xmin[:args.nb_rooms])/(xmax[:args.nb_rooms]-xmin[:args.nb_rooms])
-	print("scaled_safety_region = ", scaled_safety_region)
 	goal_formula_scaled = utils.get_safety_property(args.nb_rooms, model.final_time,scaled_safety_region.T)
 	
-	model.set_goal(goal_formula_scaled)
+	model.set_goal(goal_formula_scsafetyaled)
 	start_time = time.time()
 	robs = model.compute_robustness(trajs_scaled)
 	end_time = time.time()-start_time
@@ -61,10 +67,10 @@ for ds in range(len(datasets)):
 			roomcomb_robs.append(model.compute_robustness(trajs_scaled))
 			print(f"SAFETY of Room {i} and Room {j} Percentage of positive: ", np.sum((roomcomb_robs[-1] >= 0))/len(roomcomb_robs[-1]))
 
-		
+	filename = f'Datasets/MRH{args.nb_rooms}_'+datasets[ds]+f'_set_{nb_points[ds]}x{nb_trajs_per_state[ds]}points.pickle'
+	
 	dataset_dict = {"single_robs": roomspec_robs, "couple_robs": roomcomb_robs, "rob": robs, "x_scaled": states_scaled, "trajs_scaled": trajs_scaled, "x_minmax": (xmin,xmax)}
 
-	filename = f'Datasets/MRH{args.nb_rooms}_'+datasets[ds]+f'_set_{nb_points[ds]}x{nb_trajs_per_state[ds]}points.pickle'
 	with open(filename, 'wb') as handle:
 		pickle.dump(dataset_dict, handle)
 	handle.close()

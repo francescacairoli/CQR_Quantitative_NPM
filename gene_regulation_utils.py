@@ -18,8 +18,17 @@ def get_parameters(nb_genes):
 		# degradation rates
 		b = [0.001,0.0008,0.006,0.0004] # inactive
 		d = [0.001,0.0008,0.006,0.0004] # active
-		binding_rates = [0.001,0.001,0.001,0.001]#[0.008,0.008]
-		unbinding_rates = [0.01,0.01,0.01,0.01]#[0.02,0.01]
+		binding_rates = [0.001,0.001,0.001,0.001]
+		unbinding_rates = [0.01,0.01,0.01,0.01]
+	elif nb_genes ==6:
+		# production rates
+		a = [0.0,0.0,0.0,0.0,0.0,0.0] # inactive
+		c = 600*[1,0.9,0.8,0.7,0.6,0.5] # active
+		# degradation rates
+		b = [0.001,0.0009,0.0008,0.0007,0.006,0.0005] # inactive
+		d = [0.001,0.0009,0.0008,0.0007,0.006,0.0005] # active
+		binding_rates = [0.001,0.001,0.001,0.001,0.001,0.001]
+		unbinding_rates = [0.01,0.01,0.01,0.01,0.01,0.01]
 	else:
 		a,b,c,d,binding_rates,unbinding_rates,x_ub = 0,0,0,0,0,0,0
 
@@ -29,7 +38,6 @@ def get_parameters(nb_genes):
 
 def get_genespec_property(gene_idx, T, bound):
 	prop = f'(G_[{T/2},{T}](X{gene_idx}<={bound[gene_idx][1]/2}))'
-	#prop = f'( F_[0,{T}](G_[0,{T}](X{gene_idx}<={bound[gene_idx][1]})) )'
 	return prop
 
 def get_property(nb_genes, T, bound):

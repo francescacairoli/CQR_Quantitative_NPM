@@ -184,18 +184,80 @@ class CQR():
 
 		n_quant = test_pred_interval.shape[1]
 
-		n_points_to_plot = test_pred_interval.shape[0]
+		n_points_to_plot = 50#test_pred_interval.shape[0]
 		xline = np.arange(n_points_to_plot)
 		xline_rep = np.repeat(xline, self.test_hist_size)
 		
 		fig = plt.figure(figsize=(20,4))
-		plt.scatter(xline_rep, y_test[:n_points_to_plot*self.test_hist_size], c='b', s=1, alpha = 0.1)
-		if n_quant > 2:
-			for i in range(1,n_quant-1):
-				plt.plot(xline, test_pred_interval[:n_points_to_plot,i], 'r', alpha = 0.4)
-		plt.plot(xline, np.zeros(n_points_to_plot), '-.', color='b', alpha = 0.2)
-		plt.fill_between(xline, test_pred_interval[:n_points_to_plot,0], test_pred_interval[:n_points_to_plot,-1], color = 'r', alpha = 0.1)
+		plt.scatter(xline_rep, y_test[:n_points_to_plot*self.test_hist_size], c='orange', s=6, alpha = 0.5)
+		#if n_quant > 2:
+		#	for i in range(1,n_quant-1):
+		#		plt.plot(xline, test_pred_interval[:n_points_to_plot,i], 'r', alpha = 0.4)
+		plt.plot(xline, np.zeros(n_points_to_plot), '-.', color='red')
+		#plt.fill_between(xline, test_pred_interval[:n_points_to_plot,0], test_pred_interval[:n_points_to_plot,-1], color = 'r', alpha = 0.1)
+		y_med = test_pred_interval[:n_points_to_plot,1]
+		dminus = y_med-test_pred_interval[:n_points_to_plot,0]
+		dplus = test_pred_interval[:n_points_to_plot,-1]-y_med
+		plt.errorbar(x=xline, y=y_med, yerr=[dminus,dplus],  ecolor = 'b', fmt='bo', capsize = 4)
+		plt.ylabel('robustness')
 		plt.title(title_string)
 		plt.tight_layout()
-		fig.savefig(plot_path+"/"+title_string+extra_info+".png")
+		fig.savefig(plot_path+"/"+extra_info+"_errorbar.png")
+		plt.close()
+
+		## MATPLOTLIB ERRORBAR invece di fill_between
+
+	def plot_errorbars(self, y, qr_interval, cqr_interval, title_string, plot_path, extra_info = ''):
+		n_points_to_plot = 40#test_pred_interval.shape[0]
+		
+		n_test_points = len(y)//self.test_hist_size
+		y_resh = np.reshape(y,(n_test_points,self.test_hist_size))
+		y_resh = y_resh[:n_points_to_plot]
+		yq = []
+		yq_out = []
+		xline_rep = []
+		xline_rep_out = []
+		for i in range(n_points_to_plot):
+
+			lower_yi = np.quantile(y_resh[i], self.epsilon/2)
+			upper_yi = np.quantile(y_resh[i], 1-self.epsilon/2)
+			for j in range(self.test_hist_size):
+				if y_resh[i,j] <= upper_yi and y_resh[i,j] >= lower_yi:
+					yq.append(y_resh[i,j])
+					xline_rep.append(i)
+				else:
+					yq_out.append(y_resh[i,j])
+					xline_rep_out.append(i)					
+
+		n_quant = qr_interval.shape[1]
+
+		xline = np.arange(n_points_to_plot)
+		xline1 = np.arange(n_points_to_plot)+0.2
+		xline2 = np.arange(n_points_to_plot)+0.4
+				
+		#xline_rep = np.repeat(xline, self.test_hist_size)
+		
+		fig = plt.figure(figsize=(20,4))
+		#plt.scatter(xline_rep, y[:n_points_to_plot*self.test_hist_size], c='orange', s=6, alpha = 0.5,label='exact')
+		#plt.scatter(xline_rep_out, yq_out, c='orange', s=6, alpha = 0.1,label='test')
+		plt.scatter(xline_rep_out, yq_out, c='peachpuff', s=6, alpha = 0.25,label='test')
+		plt.scatter(xline_rep, yq, c='orange', s=6, alpha = 0.25,label='test')
+		
+		plt.plot(xline, np.zeros(n_points_to_plot), '-.', color='k')
+		qr_med = qr_interval[:n_points_to_plot,1]
+		qr_dminus = qr_med-qr_interval[:n_points_to_plot,0]
+		qr_dplus = qr_interval[:n_points_to_plot,-1]-qr_med
+		plt.errorbar(x=xline1, y=qr_med, yerr=[qr_dminus,qr_dplus],  color = 'c', fmt='o', capsize = 4, label='QR')
+		
+		cqr_med = cqr_interval[:n_points_to_plot,1]
+		cqr_dminus = cqr_med-cqr_interval[:n_points_to_plot,0]
+		cqr_dplus = cqr_interval[:n_points_to_plot,-1]-cqr_med
+		plt.errorbar(x=xline2, y=cqr_med, yerr=[cqr_dminus,cqr_dplus],  color = 'darkviolet', fmt='o', capsize = 4,label='CQR')
+		
+		plt.ylabel('robustness')
+		plt.title(title_string)
+		plt.legend()
+		plt.grid(True)
+		plt.tight_layout()
+		fig.savefig(plot_path+"/"+extra_info+"_errorbar_merged_colortest.png")
 		plt.close()

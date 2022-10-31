@@ -251,16 +251,23 @@ if __name__=='__main__':
 	
 	ht_model = ExpHeatedTank()
 	ht_model.initial_settings()
-	nb_points = 1000
-	nb_trajs_per_state = 50#2000
+	nb_points = 2000
+	nb_trajs_per_state = 50
+	dataset_type = 'train'
 
 	states = ht_model.sample_initial_states(nb_points)
 	trajs = ht_model.generate_trajectories(states, nb_trajs_per_state)
 	
+	if dataset_type == 'train':
+		xmax = np.max(np.max(trajs, axis = 0), axis = 0)
+		xmin = np.min(np.min(trajs, axis = 0), axis = 0)
+	else:
+		trainset_fn = 'Datasets/EHT2_train_set_{}x{}points.pickle'.format(nb_points, nb_trajs_per_state)
 
-	xmax = np.max(np.max(trajs, axis = 0), axis = 0)
-	xmin = np.min(np.min(trajs, axis = 0), axis = 0)
-	print("--- xmin, xmax = ", xmin, xmax)
+		with open(trainset_fn, 'rb') as handle:
+			train_data = pickle.load(handle)
+		handle.close()
+		xmin, xmax = train_data["x_minmax"]
 	
 	trajs_scaled = -1+2*(trajs-xmin)/(xmax-xmin)
 	states_scaled = -1+2*(states-xmin)/(xmax-xmin)
@@ -280,7 +287,7 @@ if __name__=='__main__':
 	
 	dataset_dict = {"rob": robs, "x_scaled": states_scaled, "trajs_scaled": trajs_scaled, "x_minmax": (xmin,xmax)}
 
-	filename = 'Datasets/EHT2_calibration_set_{}x{}points.pickle'.format(nb_points, nb_trajs_per_state)
+	filename = 'Datasets/EHT2_'+dataset_type+'_set_{}x{}points.pickle'.format(nb_points, nb_trajs_per_state)
 	with open(filename, 'wb') as handle:
 		pickle.dump(dataset_dict, handle)
 	handle.close()

@@ -4,6 +4,7 @@ plt.rcParams.update({'font.size': 22})
 from scipy.integrate import odeint, solve_ivp
 from scipy.stats import norm, expon, bernoulli, multivariate_normal
 import math
+from tqdm import tqdm
 import pickle
 from pcheck.semantics import stlBooleanSemantics, stlRobustSemantics
 from pcheck.series.TimeSeries import TimeSeries
@@ -107,8 +108,8 @@ class AutomatedAnaesthesiaDelivery(object):
 		n_states = len(trajs)
 		robs = np.empty(n_states)
 		 
-		for i in range(n_states):
-			print("rob ", i+1, "/", n_states)
+		for i in tqdm(range(n_states)):
+			#print("rob ", i+1, "/", n_states)
 			time_series_i = TimeSeries(['X1', 'X2', 'X3'], self.timeline, trajs[i].T)
 			robs[i] = stlRobustSemantics(time_series_i, 0, self.phi)
 
@@ -120,16 +121,25 @@ if __name__=='__main__':
 	ad_model.initialize_settings()
 	nb_points = 200
 	nb_trajs_per_state = 500
+	dataset_type = 'test'
+
 
 	states = ad_model.sample_rnd_states(nb_points)
 	trajs = ad_model.gen_trajectories(states, nb_trajs_per_state)
 
 	#ad_model.plot_trajectories(trajs)
 
-	xmax = np.max(np.max(trajs, axis = 0), axis = 0)
-	xmin = np.min(np.min(trajs, axis = 0), axis = 0)
-	print("--- xmin, xmax = ", xmin, xmax)
-	
+	if dataset_type == 'train':
+		xmax = np.max(np.max(trajs, axis = 0), axis = 0)
+		xmin = np.min(np.min(trajs, axis = 0), axis = 0)
+	else:
+		trainset_fn = 'Datasets/EHT2_train_set_{}x{}points.pickle'.format(nb_points, nb_trajs_per_state)
+
+		with open(trainset_fn, 'rb') as handle:
+			train_data = pickle.load(handle)
+		handle.close()
+		xmin, xmax = train_data["x_minmax"]
+
 	trajs_scaled = -1+2*(trajs-xmin)/(xmax-xmin)
 	states_scaled = -1+2*(states-xmin)/(xmax-xmin)
 
@@ -145,7 +155,7 @@ if __name__=='__main__':
 	
 	dataset_dict = {"rob": robs, "x_scaled": states_scaled, "trajs_scaled": trajs_scaled, "x_minmax": (xmin,xmax)}
 
-	filename = 'Datasets/AAD_test_set_{}x{}points.pickle'.format(nb_points, nb_trajs_per_state)
+	filename = 'Datasets/AAD_'+dataset_type+'_set_{}x{}points.pickle'.format(nb_points, nb_trajs_per_state)
 	with open(filename, 'wb') as handle:
 		pickle.dump(dataset_dict, handle)
 	handle.close()

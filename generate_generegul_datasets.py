@@ -6,10 +6,10 @@ parser.add_argument("--nb_genes", default=2, type=int, help="Nb of genes")
 args = parser.parse_args()
 
 datasets = ['train', 'calibration','test']
-nb_points = [1000*args.nb_genes, 500*args.nb_genes, 100*args.nb_genes]
+nb_points = [1000*args.nb_rooms, 500*args.nb_rooms, 100*args.nb_rooms]
 nb_trajs_per_state = [50, 50, 500]
-#nb_points = [10*args.nb_genes]#, 5*args.nb_genes, 10*args.nb_genes
-#nb_trajs_per_state = [10]#, 5, 50
+nb_points = [1000*args.nb_rooms, 500*args.nb_rooms, 100*args.nb_rooms]
+nb_trajs_per_state = [50, 50, 500]
 
 for ds in range(len(datasets)):
 
@@ -17,7 +17,7 @@ for ds in range(len(datasets)):
 	params = utils.get_parameters(args.nb_genes)
 	model.initialize_settings(params)
 
-	print(nb_points[ds])
+
 	states = model.sample_rnd_states(nb_points[ds])
 	start_time = time.time()
 	trajs = model.gen_trajectories(states, nb_trajs_per_state[ds])
@@ -25,9 +25,15 @@ for ds in range(len(datasets)):
 	print(f'Time needed to generate {nb_points[ds]*nb_trajs_per_state[ds]} trajectories = {end_time}')
 	#model.plot_trajectories(trajs, datasets[ds])
 
-	xmax = np.max(np.max(trajs, axis = 0), axis = 0)
-	xmin = np.min(np.min(trajs, axis = 0), axis = 0)
-	print("--- xmin, xmax = ", xmin, xmax)
+	if datasets[ds] == 'train':
+		xmax = np.max(np.max(trajs, axis = 0), axis = 0)
+		xmin = np.min(np.min(trajs, axis = 0), axis = 0)
+	else:
+		trainset_fn = f'Datasets/MRH{args.nb_rooms}_'+'train'+f'_set_{nb_points[ds]}x{nb_trajs_per_state[ds]}points.pickle'
+		with open(trainset_fn, 'rb') as handle:
+			train_data = pickle.load(handle)
+		handle.close()
+		xmin, xmax = train_data["x_minmax"]
 	
 	trajs_scaled = -1+2*(trajs-xmin)/(xmax-xmin)
 	states_scaled = -1+2*(states-xmin)/(xmax-xmin)
@@ -36,6 +42,7 @@ for ds in range(len(datasets)):
 	print("scaled_safety_region = ", scaled_safety_region)
 	goal_formula_scaled = utils.get_property(args.nb_genes, model.final_time,scaled_safety_region.T)
 	
+
 	model.set_goal(goal_formula_scaled)
 	start_time = time.time()
 	robs = model.compute_robustness(trajs_scaled)
@@ -44,6 +51,7 @@ for ds in range(len(datasets)):
 		
 	print("FULL SAFETY Percentage of positive: ", np.sum((robs >= 0))/len(robs))
 	
+	robs = []	
 	genespec_props = [utils.get_genespec_property(i, model.final_time,scaled_safety_region.T) for i in range(args.nb_genes)]
 	genespec_robs = []
 	genecomb_robs = []
@@ -61,8 +69,8 @@ for ds in range(len(datasets)):
 			print(f"SATISFACTION of Gene {i} and Gene {j} Percentage of positive: ", np.sum((genecomb_robs[-1] >= 0))/len(genecomb_robs[-1]))
 
 		
-	dataset_dict = {"single_robs": genespec_robs, "couple_robs": genecomb_robs, "rob": robs, "x_scaled": states_scaled, "trajs_scaled": trajs_scaled, "x_minmax": (xmin,xmax)}
-
+	dataset_dict = {"single_robs": genespec_robs, "couple_robs": genecomb_robs, "rob": robs, "x_scaled": states_scaled, "x_minmax": (xmin,xmax)}#"trajs_scaled": trajs_scaled,
+	
 	filename = f'Datasets/GRN{args.nb_genes}_'+datasets[ds]+f'_set_{nb_points[ds]}x{nb_trajs_per_state[ds]}points.pickle'
 	with open(filename, 'wb') as handle:
 		pickle.dump(dataset_dict, handle)
