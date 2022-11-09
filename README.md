@@ -1,6 +1,11 @@
 # Conformal Quantitative Predictive Monitoring of STL Requirements for Stochastic Processes
 
-Submitted to HSCC 23 by Anonymous Authors
+Authors: Cairoli Francesca, Nicola Paoletti and Luca Bortolussi
+University of Trieste, Italy
+King's Cross College London, UK
+
+Paper: \url{https://arxiv.org/abs/2211.02375}
+Submitted to HSCC 23
 
 ## Setup
 
@@ -26,7 +31,7 @@ python generate_multiroom_datasets.py --nb_rooms 2
 python generate_generegul_datasets.py --nb_genes 2
 ```
 
-Datasets are stored in the `Datasets/` folder. Data are not loaded because of the space limitations in the submission phase.
+Datasets are stored in the `Datasets/` folder. Datasets can be downloaded at the following link: \url{https://mega.nz/folder/pCok2SqQ#vz7ZelFpKT0BUgWfb3h8jQ}.
 
 ## Inference
 
