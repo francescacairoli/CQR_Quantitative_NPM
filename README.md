@@ -32,7 +32,7 @@ python generate_multiroom_datasets.py --nb_rooms 2
 python generate_generegul_datasets.py --nb_genes 2
 ```
 
-Datasets are stored in the `Datasets/` folder. Datasets can be downloaded at the following link: https://mega.nz/folder/pCok2SqQ#vz7ZelFpKT0BUgWfb3h8jQ.
+Datasets are stored in the `Datasets/` folder. Datasets can be downloaded at the following link: https://drive.google.com/drive/folders/15Jt3Mecmu3EFu4GqUUXenS_UrNgkDL8P?usp=share_link
 
 ## Inference
 
