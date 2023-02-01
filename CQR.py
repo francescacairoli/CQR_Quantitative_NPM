@@ -180,33 +180,6 @@ class CQR():
 		return correct/n_points, uncertain/n_points, wrong/n_points, fp/n_points
 
 
-	def plot_results(self, y_test, test_pred_interval, title_string, plot_path, extra_info = ''):
-
-		n_quant = test_pred_interval.shape[1]
-
-		n_points_to_plot = 50#test_pred_interval.shape[0]
-		xline = np.arange(n_points_to_plot)
-		xline_rep = np.repeat(xline, self.test_hist_size)
-		
-		fig = plt.figure(figsize=(20,4))
-		plt.scatter(xline_rep, y_test[:n_points_to_plot*self.test_hist_size], c='orange', s=6, alpha = 0.5)
-		#if n_quant > 2:
-		#	for i in range(1,n_quant-1):
-		#		plt.plot(xline, test_pred_interval[:n_points_to_plot,i], 'r', alpha = 0.4)
-		plt.plot(xline, np.zeros(n_points_to_plot), '-.', color='red')
-		#plt.fill_between(xline, test_pred_interval[:n_points_to_plot,0], test_pred_interval[:n_points_to_plot,-1], color = 'r', alpha = 0.1)
-		y_med = test_pred_interval[:n_points_to_plot,1]
-		dminus = y_med-test_pred_interval[:n_points_to_plot,0]
-		dplus = test_pred_interval[:n_points_to_plot,-1]-y_med
-		plt.errorbar(x=xline, y=y_med, yerr=[dminus,dplus],  ecolor = 'b', fmt='bo', capsize = 4)
-		plt.ylabel('robustness')
-		plt.title(title_string)
-		plt.tight_layout()
-		fig.savefig(plot_path+"/"+extra_info+"_errorbar.png")
-		plt.close()
-
-		## MATPLOTLIB ERRORBAR invece di fill_between
-
 	def plot_errorbars(self, y, qr_interval, cqr_interval, title_string, plot_path, extra_info = ''):
 		n_points_to_plot = 40#test_pred_interval.shape[0]
 		
@@ -235,11 +208,7 @@ class CQR():
 		xline1 = np.arange(n_points_to_plot)+0.2
 		xline2 = np.arange(n_points_to_plot)+0.4
 				
-		#xline_rep = np.repeat(xline, self.test_hist_size)
-		
 		fig = plt.figure(figsize=(20,4))
-		#plt.scatter(xline_rep, y[:n_points_to_plot*self.test_hist_size], c='orange', s=6, alpha = 0.5,label='exact')
-		#plt.scatter(xline_rep_out, yq_out, c='orange', s=6, alpha = 0.1,label='test')
 		plt.scatter(xline_rep_out, yq_out, c='peachpuff', s=6, alpha = 0.25,label='test')
 		plt.scatter(xline_rep, yq, c='orange', s=6, alpha = 0.25,label='test')
 		
