@@ -25,7 +25,7 @@ pip3.7 install -r requirements.txt
 
 ## Dataset generation
 
-Run the following command (on per case study)
+Run the following command (one per case study)
 ```
 python AutomAnaesthesiaDelivery.py 
 python ExpHeatedTank.py
@@ -37,7 +37,7 @@ python generate_generegul_datasets.py --nb_genes 2
 Datasets are stored in the `Datasets/` folder. Data are not loaded because of the space limitations in the submission phase.
 =======
 Datasets are stored in the `Datasets/` folder. Datasets can be downloaded at the following link: https://drive.google.com/drive/folders/15Jt3Mecmu3EFu4GqUUXenS_UrNgkDL8P?usp=share_link
->>>>>>> 8d83ee5e790cfb56944c5be9f6e0fc9e579b2f2c
+
 
 ## Inference
 
