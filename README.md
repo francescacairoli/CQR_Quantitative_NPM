@@ -13,7 +13,7 @@ Accepted to HSCC 23
 # Code structure
 - `Datasets/`
 - `Models/`
-    - `MODEL_PREFIX+MODEL_DIM/QR_results/` `
+    - `MODEL_PREFIX+MODEL_DIM/QR_results/` 
         This folder contains a subfolder for each tested configuration:
                 `ID_CQR_#CONFIG_ID_Dropout0.1_multiout_opt=_20hidden_500epochs_3quantiles_3layers_alpha0.1_lr0.0005`
             This folders contains both the pre-trained models but also the visualization of the results (as the ones shown in Fig. 6 of the paper).
