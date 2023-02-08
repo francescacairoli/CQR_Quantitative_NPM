@@ -129,6 +129,6 @@ plt.ylabel('robustness')
 plt.grid(True)
 plt.legend()
 plt.tight_layout()
-fig.savefig(qr.results_path+"/sequential_evaluation_colortest_1.png")
+fig.savefig(qr.results_path+"/sequential_evaluation.png")
 plt.close()
 

@@ -60,7 +60,7 @@ class Dataset():
 				L_train[i, 1] = 1
 				C_train[i] = 1
 
-		self.L_train = L_train#np.repeat(L_train, self.hist_size, axis=0)
+		self.L_train = L_train
 		self.C_train = C_train
 			
 		
@@ -102,8 +102,8 @@ class Dataset():
 				L_test[i, 1] = 1
 				C_test[i] = 1
 
-		print('>>>> test set avg interval width: ', np.mean(widths))
-		self.L_test = L_test#np.repeat(L_test, self.test_hist_size, axis=0)
+		print('Test set avg interval width: ', np.mean(widths))
+		self.L_test = L_test
 		self.C_test = C_test
 
 	def load_calibration_data(self):
@@ -140,7 +140,7 @@ class Dataset():
 			else:
 				L_cal[i, 1] = 1
 				C_cal[i] = 1
-		self.L_cal = L_cal#np.repeat(L_cal, self.hist_size, axis=0)
+		self.L_cal = L_cal
 		self.C_cal = C_cal
 		
 	def generate_mini_batches(self, n_samples):

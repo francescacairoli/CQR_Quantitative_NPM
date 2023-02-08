@@ -153,8 +153,7 @@ class GeneRegulatoryNet(object):
 
 
 	def plot_trajectories(self, trajs, ds_name = ""):
-		print('trajs.shape=', trajs.shape)
-		#print('trajs=', trajs)
+
 		trajs_reshaped = np.reshape(trajs, (self.n_samples, self.n_trajs_per_state, self.N, self.state_dim))
 		self.protein_labels = [f'P{i}' for i in range(self.h)]
 		self.gene_labels = [f'G{i}' for i in range(self.h)]

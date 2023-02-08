@@ -181,7 +181,7 @@ class CQR():
 
 
 	def plot_errorbars(self, y, qr_interval, cqr_interval, title_string, plot_path, extra_info = ''):
-		n_points_to_plot = 40#test_pred_interval.shape[0]
+		n_points_to_plot = 40
 		
 		n_test_points = len(y)//self.test_hist_size
 		y_resh = np.reshape(y,(n_test_points,self.test_hist_size))
@@ -228,5 +228,5 @@ class CQR():
 		plt.legend()
 		plt.grid(True)
 		plt.tight_layout()
-		fig.savefig(plot_path+"/"+extra_info+"_errorbar_merged_colortest.png")
+		fig.savefig(plot_path+"/"+extra_info+"_errorbar_merged.png")
 		plt.close()

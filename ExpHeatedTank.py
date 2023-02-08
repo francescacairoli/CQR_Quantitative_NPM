@@ -34,9 +34,9 @@ class ExpHeatedTank(object):
 		self.T_overheating = 100
 		self.t_end = 48
 		self.t_init = 0
-		self.beta_P1 = 438/2 # avg time to failure #219 438
-		self.beta_P2 = 350/2 #175 350
-		self.beta_V = 640/2 #320 640
+		self.beta_P1 = 438/2 # avg time to failure
+		self.beta_P2 = 350/2 
+		self.beta_V = 640/2
 		self.T_in = 15 # infow temperature
 		self.E_in = 1 # heat source parameter
 		self.control_config = {"Normal":0, "Increase":1, "Decrease":-1}
@@ -47,8 +47,6 @@ class ExpHeatedTank(object):
 
 
 	def initial_settings(self):
-		#self.x_H = 0
-		#self.x_T = 15+2/3
 		self.C = self.control_config["Normal"]
 		self.P1_config = self.working_config[1]
 		self.P2_config = self.working_config[0]
@@ -147,9 +145,6 @@ class ExpHeatedTank(object):
 
 
 	def failure_events(self, curr_t):
-
-		# Version 1
-
 
 		nb_failures = 2
 		nb_utils = 3

@@ -23,11 +23,11 @@ class TrainQR():
 		self.alpha = 0.1
 		if idx:
 			self.idx = idx
-			self.results_path = self.model_name+"/QR_results/ID_"+idx
+			self.results_path = "Models/"+self.model_name+"/QR_results/ID_"+idx
 		else:
 			rnd_idx = str(np.random.randint(0,100000))
 			self.idx = rnd_idx
-			self.results_path = self.model_name+"/QR_results/ID_"+rnd_idx
+			self.results_path = "Models/"+self.model_name+"/QR_results/ID_"+rnd_idx
 		os.makedirs(self.results_path, exist_ok=True)
 
 		self.cal_hist_size = cal_hist_size

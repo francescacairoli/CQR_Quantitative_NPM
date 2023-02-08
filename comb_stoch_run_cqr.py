@@ -32,7 +32,6 @@ parser.add_argument("--comb_idx", default=0, type=int, help="Identifier of the c
 args = parser.parse_args()
 print(args)
 
-#print(torch.cuda.device_count())
 
 model_name = args.model_prefix+str(args.model_dim)
 
@@ -52,8 +51,6 @@ n_train_states, n_cal_states, n_test_states, cal_hist_size, test_hist_size = ds_
 
 print("qr_training_flag = ", args.qr_training_flag)
 
-#trainset_fnH, calibrset_fnH, testset_fnH, ds_detailsH = import_filenames_w_dim(model_name, args.model_dim, extra='H')
-#n_train_statesH, n_cal_statesH, n_test_statesH, cal_hist_sizeH, test_hist_sizeH = ds_detailsH
 
 quantiles = np.array([args.alpha/2, 0.5,  1-args.alpha/2]) # LB, MEDIAN, UB
 nb_quantiles = len(quantiles)
@@ -91,18 +88,12 @@ if args.comb_calibr_flag:
 	cpi_correct, cpi_uncertain, cpi_wrong, cpi_fp = cqr.compute_accuracy_and_uncertainty(cpi_test, dataset.L_test)
 	print("cpi_correct = ", cpi_correct, "cpi_uncertain = ", cpi_uncertain, "cpi_wrong = ", cpi_wrong, "cpi_fp = ", cpi_fp)
 
-	#dataset1 = Dataset(property_idx=prop_idxs[0], comb_flag=False, trainset_fn=trainset_fnH, testset_fn=testset_fnH, 
-	#			calibrset_fn=calibrset_fnH, alpha=args.alpha, n_train_states=n_train_statesH, n_cal_states=n_cal_statesH, 
-	#			n_test_states=n_test_statesH, hist_size=cal_hist_sizeH, test_hist_size=test_hist_sizeH)
-	#dataset1.load_data()
+
 	dataset1 = Dataset(property_idx=prop_idxs[0], comb_flag=False, trainset_fn=trainset_fn, testset_fn=testset_fn, 
 				calibrset_fn=calibrset_fn, alpha=args.alpha, n_train_states=n_train_states, n_cal_states=n_cal_states, 
 				n_test_states=n_test_states, hist_size=cal_hist_size, test_hist_size=test_hist_size)
 	dataset1.load_data()
-	#dataset2 = Dataset(property_idx=prop_idxs[1], comb_flag=False, trainset_fn=trainset_fnH, testset_fn=testset_fnH, 
-	#			calibrset_fn=calibrset_fnH, alpha=args.alpha, n_train_states=n_train_statesH, n_cal_states=n_cal_statesH, 
-	#			n_test_states=n_test_statesH, hist_size=cal_hist_sizeH, test_hist_size=test_hist_sizeH)
-	#dataset2.load_data()
+
 	dataset2 = Dataset(property_idx=prop_idxs[1], comb_flag=False, trainset_fn=trainset_fn, testset_fn=testset_fn, 
 				calibrset_fn=calibrset_fn, alpha=args.alpha, n_train_states=n_train_states, n_cal_states=n_cal_states, 
 				n_test_states=n_test_states, hist_size=cal_hist_size, test_hist_size=test_hist_size)

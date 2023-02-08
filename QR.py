@@ -47,6 +47,5 @@ class QR(nn.Module):
 		x = nn.Dropout(p=self.drop_out_rate)(x)
 
 		x = self.fc_out(x)
-		#x = torch.tanh(x)
 
 		return x
