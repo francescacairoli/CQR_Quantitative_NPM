@@ -50,15 +50,18 @@ Install the pcheck library, download it from: https://github.com/simonesilvetti/
 # Reproduce experiments
 
 
-1. Download the pre-generated synthetic datasets from https://drive.google.com/drive/folders/18iEYg0iUsVEYAbyx8Q7nQwiJKpr5fPlj?usp=sharing into the `Datasets/` folder (make sure that the `Datasets/` directory is not nested in other directories)
-2. Download the pre-trained models from https://drive.google.com/drive/folders/14l2MOAmp64tlOrBEKYQbM4zhvdUT99Bm?usp=sharing into the `Models/` folder (make sure that the `Models/` directory is not nested in other directories)
+1. Download the **pre-generated** synthetic **datasets** from https://drive.google.com/drive/folders/18iEYg0iUsVEYAbyx8Q7nQwiJKpr5fPlj?usp=sharing into the `Datasets/` folder (make sure that the `Datasets/` directory is not nested in other directories)
+2. Download the **pre-trained models** from https://drive.google.com/drive/folders/14l2MOAmp64tlOrBEKYQbM4zhvdUT99Bm?usp=sharing into the `Models/` folder (make sure that the `Models/` directory is not nested in other directories)
 3. To reproduce all the results presented in the paper by run the two following bash commands with the proper model-specific settings.
 
 
     For single properties: 
-    bash run_single_experiments.py
+    
+     `bash run_single_experiments.py `
+    
     For combined properties:
-    bash run_conjunction_experiments.py
+    
+    `bash run_conjunction_experiments.py `
 
 
     In order to run pre-trained models we set `--qr_training_flag False`. To re-train all the models from scratch one should simple set the `--qr_training_flag` to `True`.
@@ -67,7 +70,7 @@ Install the pcheck library, download it from: https://github.com/simonesilvetti/
 
 
 # Run experiments from scratch
-- Dataset generation: run the following command (one per case study)
+- **Dataset generation**: run the following command (one per case study)
     python AutomAnaesthesiaDelivery.py 
     python ExpHeatedTank.py
     python generate_multiroom_datasets.py --nb_rooms MDOEL_DIM
@@ -76,20 +79,20 @@ Install the pcheck library, download it from: https://github.com/simonesilvetti/
 Setting the desired number of points `nb_points` and the desired number of trajectories `nb_trajs_per_state` to simulate from each state.
 
 
-- Inference:
+- **Inference**:
 
 Run the following command with the details specific of the case study considered
 
-    python stoch_run_cqr.py --model_prefix MODEL_PREFIX --model_dim MODEL_DIM --property_idx CONFIG_ID --qr_training_flag True
+     `python stoch_run_cqr.py --model_prefix MODEL_PREFIX --model_dim MODEL_DIM --property_idx CONFIG_ID --qr_training_flag True `
 
 `MODEL_PREFIX` allowed are 'GRN', 'AAD' and 'EHT'. For 'AAD' and 'EHT' set the property_idx is the `CONFIG_ID` defined before.
 
-For combining different monitors (conjunction of properties) run the following command
+For **combining** different monitors (conjunction of properties) run the following command
 
-    python comb_stoch_run_cqr.py --model_prefix MDOEL_PREFIX --model_dim MODEL_DIM --comb_idx 0 --qr_training_flag True --comb_calibr_flag True
+     `python comb_stoch_run_cqr.py --model_prefix MDOEL_PREFIX --model_dim MODEL_DIM --comb_idx 0 --qr_training_flag True --comb_calibr_flag True `
 
 The `comb_calibr_flag` is set to false is we want to train the CQR for the conjunction and set to true is we want to combine the property-specific prediction intervals. `comb_idx` enumerates the possible combinations of properties (without repetions) with the order given by flattening the non-zero elements of the upper-triangolar matrix (no diagonal included).
 
-For sequential experiments run
+For **sequential** experiments run
 
-    *_sequential_test.py
+    ` *_sequential_test.py `
