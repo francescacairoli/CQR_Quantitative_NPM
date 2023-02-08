@@ -73,8 +73,11 @@ Install the pcheck library, download it from: https://github.com/simonesilvetti/
 - **Dataset generation**: run the following command (one per case study)
 
     `python AutomAnaesthesiaDelivery.py `
+    
     `python ExpHeatedTank.py`
+    
     `python generate_multiroom_datasets.py --nb_rooms MDOEL_DIM`
+    
     `python generate_generegul_datasets.py --nb_genes MODEL_DIM`
 
 Setting the desired number of points `nb_points` and the desired number of trajectories `nb_trajs_per_state` to simulate from each state.
