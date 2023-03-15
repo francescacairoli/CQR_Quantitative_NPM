@@ -44,7 +44,8 @@ Code structure
 
 
 
-            Remark: results of combined properties are stored in the directory of the model with the lowest  index, e.g. when you combine property 0 and property 2 (ID #02), results are stored in folder with ID #0.
+**Remark:** results of combined properties are stored in the directory of the model with the lowest  index, e.g. when you combine property 0 and property 2 (ID #02), results are stored in folder with ID #0.
+
 - `out/tables/` contains the results in tables (`.csv`  format) with the same structure as those presented in the paper.
 
 
