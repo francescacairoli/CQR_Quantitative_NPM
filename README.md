@@ -1,20 +1,16 @@
 # Conformal Quantitative Predictive Monitoring of STL Requirements for Stochastic Processes
 
 
-Authors: Cairoli Francesca, Nicola Paoletti and Luca Bortolussi
+**Authors:** Cairoli Francesca, Nicola Paoletti and Luca Bortolussi
 University of Trieste, Italy
 King's Cross College London, UK
 
-Paper: https://arxiv.org/abs/2211.02375
+**Paper:** https://arxiv.org/abs/2211.02375
 
 Accepted to HSCC 23
 
 
-Repeatability Evaluation HSCC23
-Code for paper "Conformal Quantitative Predictive Monitoring of STL Requirements for Stochastic Processes",  Francesca Cairoli, Nicola Paoletti, Luca Bortolussi (2023)
-
-
-Abstract
+**Abstract**
 
 We consider the problem of predictive monitoring (PM), i.e., predicting at runtime the satisfaction of a desired property from the current system's state. Due to its relevance for runtime safety assurance and online control, PM methods need to be efficient to enable timely interventions against predicted violations, while providing correctness guarantees. 
 We introduce quantitative predictive monitoring (QPM), the first PM method to support stochastic processes and rich specifications given in Signal Temporal Logic (STL). Unlike most of the existing PM techniques that predict whether or not some property $$\phi$$ is satisfied, QPM provides a quantitative measure of satisfaction by predicting the quantitative (aka robust) STL semantics of $$\phi$$. QPM derives prediction intervals that are highly efficient to compute and with probabilistic guarantees, in that the intervals cover with arbitrary probability the STL robustness values relative to the stochastic evolution of the system.  To do so, we take a machine-learning approach and leverage recent advances in conformal inference for quantile regression, thereby avoiding expensive Monte-Carlo simulations at runtime to estimate the intervals. 
@@ -22,10 +18,10 @@ We also show how our monitors can be combined in a compositional manner to handl
 We demonstrate the effectiveness and scalability of QPM over a benchmark of four discrete-time stochastic processes with varying degrees of complexity. 
 
 
-Download the pre-generated synthetic datasets and pre-trained models from this repository: https://drive.google.com/drive/folders/15Jt3Mecmu3EFu4GqUUXenS_UrNgkDL8P?usp=sharing
+**Download** the pre-generated synthetic datasets and pre-trained models from this repository: https://drive.google.com/drive/folders/15Jt3Mecmu3EFu4GqUUXenS_UrNgkDL8P?usp=sharing
 The link contains a compressed file `load.zip`. Unzip the file obtaining `Datasets/` folder containing the pre-generated datasets and the`Models/` folder containing the pre-trained models. Import these two folders in the working directory `src/`.
 
-Experiments
+**Experiments**
     Code is inside the `src/` folder.
 Code structure
 - `Datasets/`
@@ -53,7 +49,7 @@ Code structure
 
 
 
-Quick start
+**Quick start**
 1. Use `src/` as working directory
     cd src
     
@@ -74,7 +70,7 @@ In case you have any problem with the pcheck library, download it from: https://
     cd ..
 
 
-Reproduce experiments
+**Reproduce experiments**
 
 
 1. As already stated, the first step consists in downloading the code, the pre-generated synthetic datasets and the pre-trained models from https://drive.google.com/drive/folders/18iEYg0iUsVEYAbyx8Q7nQwiJKpr5fPlj?usp=sharing
@@ -95,14 +91,14 @@ Reproduce experiments
     
     In train `run_conjunction_experiments.sh` if the`--comb_calibr_flag` is set to `False` the CQR is trained over the combined property. If it is set to `True`, we combine the intervals coming from two properties.
 
-To reproduce all the experiments with a single script run:
+To **reproduce all the experiments** with a single script run:
 
     bash run_all.sh
 
 Results are stored in the `Results\` folder with the same ID used to identify the pre-trained model.
 To better visualize and compare the output results, the `out\tables\` folder stores the model-specifc tables, in a `.csv` format. These tables summarize the results with the same structure presented in the paper (Table 1 to Table 6).
 
-Run experiments from scratch
+**Run experiments from scratch**
 - Dataset generation: run the following command (one per case study)
     python data_generation/AutomAnaesthesiaDelivery.py 
     python data_generation/ExpHeatedTank.py
