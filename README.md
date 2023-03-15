@@ -31,21 +31,27 @@ The string `MODEL_PREFIX+MODEL_DIM` uniquely identifies the case study:
 # Setup
 
 
-Create a working virtual environment
-    - create a virtual environment
+Create a working virtual environment:
+
+    # create a virtual environment
+    
     pip install virtualenv
     python3 -m venv qpm_env
     source qpm_env/bin/activate
     
-    - install the specified requirements
+    
+    # install the specified requirements
+    
     pip install -r requirements.txt
     
 
 Install the pcheck library, download it from: https://github.com/simonesilvetti/pcheck and install it (making sure that the `pcheck/` directory is not nested in other directories).
 
+    
     cd pcheck
     python setup.py install
     cd ..
+    
     
 # Reproduce experiments
 
