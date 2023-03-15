@@ -1,6 +1,7 @@
 import copy
 import time
 import argparse
+import pandas as pd
 from QR import * # NN architecture to learn quantiles
 from CQR import *
 from utils import * # import-export methods
@@ -32,7 +33,7 @@ print(torch.cuda.device_count())
 
 model_name = args.model_prefix+str(args.model_dim)
 
-print("MODEL = ", model_name, "Dim = ", args.model_dim)
+print("Model name = ", model_name, " Model dim = ", args.model_dim)
 
 trainset_fn, calibrset_fn, testset_fn, ds_details = import_filenames_w_dim(model_name, args.model_dim)
 n_train_states, n_cal_states, n_test_states, cal_hist_size, test_hist_size = ds_details
@@ -41,19 +42,25 @@ n_train_states, n_cal_states, n_test_states, cal_hist_size, test_hist_size = ds_
 quantiles = np.array([args.alpha/2, 0.5,  1-args.alpha/2]) # LB, MEDIAN, UB
 nb_quantiles = len(quantiles)
 
-print(f"Quantiles = {quantiles}")
-print(f"Property idx = {args.property_idx}")
-
-print(f"n_epochs = {args.n_epochs}, lr = {args.lr}, batch_size = {args.batch_size}")
-
 idx_str = f'CQR_#{args.property_idx}_Dropout{args.dropout_rate}_multiout_opt=_{args.n_hidden}hidden_{args.n_epochs}epochs_{nb_quantiles}quantiles_3layers_alpha{args.alpha}_lr{args.lr}'
 
-print(f"Results folder = {idx_str}")
 
+print(f"Models folder = Models/{model_name}/ID_{idx_str}")
+print(f"Results folder = Results/{model_name}/ID_{idx_str}")
+
+print(f"	Quantiles = {quantiles}")
+print(f"	Property idx = {args.property_idx}")
+
+
+print(f"Training settings: n_epochs = {args.n_epochs}, lr = {args.lr}, batch_size = {args.batch_size}")
+
+# import data
 dataset = Dataset(property_idx=args.property_idx, comb_flag=False, trainset_fn=trainset_fn, testset_fn=testset_fn, 
 			calibrset_fn=calibrset_fn, alpha=args.alpha, n_train_states=n_train_states, n_cal_states=n_cal_states, 
 			n_test_states=n_test_states, hist_size=cal_hist_size, test_hist_size=test_hist_size)
-dataset.load_data()
+eqr_width = dataset.load_data()
+
+print(f"Test EQR width = {eqr_width}")
 
 # Train the QR
 qr = TrainQR(model_name, dataset, idx = idx_str, cal_hist_size  = cal_hist_size, test_hist_size = test_hist_size, quantiles = quantiles, opt = args.opt, n_hidden = args.n_hidden, xavier_flag = args.xavier_flag, scheduler_flag = args.scheduler_flag, drop_out_rate = args.dropout_rate)
@@ -85,12 +92,24 @@ print("cpi_correct = ", cpi_correct, "cpi_uncertain = ", cpi_uncertain, "cpi_wro
 
 cqr.plot_errorbars(dataset.R_test, pi_test, cpi_test, "predictive intervals", qr.results_path, 'pred_interval')
 
+d = {model_name:['QR', 'CQR'],'correct': [pi_correct, cpi_correct],
+	'uncertain': [pi_uncertain, cpi_uncertain],
+	'wrong':[pi_wrong,cpi_wrong], 'FP':[pi_fp,cpi_fp],
+	'coverage':[pi_coverage, cpi_coverage],
+	'efficiency': [pi_efficiency, cpi_efficiency],
+	'EQR width': [eqr_width, '-']}
+df = pd.DataFrame(data=d)
+print('Table of results:\n ',df)
+out_tables_path = f"out/tables/{args.model_prefix}"
+os.makedirs(out_tables_path, exist_ok=True)
+df.to_csv(out_tables_path+f"/{model_name}_results.csv", index=False)
 
-results_list = ["\n Quantiles = ", str(quantiles), "\n Id = ", idx_str, "\n tau = ", str(cqr.tau),
-"\n pi_coverage = ", str(pi_coverage), "\n pi_efficiency = ", str(pi_efficiency),
-"\n pi_correct = ", str(pi_correct), "\n pi_uncertain = ", str(pi_uncertain), "\n pi_wrong = ", str(pi_wrong),"\n pi_fp = ", str(pi_fp),
-"\n cpi_coverage = ", str(cpi_coverage), "\n cpi_efficiency = ", str(cpi_efficiency),
-"\n cpi_correct = ", str(cpi_correct), "\n cpi_uncertain = ", str(cpi_uncertain), "\n cpi_wrong = ", str(cpi_wrong),"\n cpi_fp = ", str(cpi_fp)]
+results_list = ["Id = ", idx_str, "\n", "\n Quantiles = ", str(quantiles), "\n tau = ", str(cqr.tau), "\n",
+"\n pi_correct = ", str(pi_correct), "\n pi_uncertain = ", str(pi_uncertain), "\n pi_wrong = ", str(pi_wrong),"\n pi_fp = ", str(pi_fp),"\n pi_coverage = ", str(pi_coverage), "\n pi_efficiency = ", str(pi_efficiency),
+"\n",
+"\n eqr_width = ", str(eqr_width),
+"\n",
+"\n cpi_correct = ", str(cpi_correct), "\n cpi_uncertain = ", str(cpi_uncertain), "\n cpi_wrong = ", str(cpi_wrong),"\n cpi_fp = ", str(cpi_fp),"\n cpi_coverage = ", str(cpi_coverage), "\n cpi_efficiency = ", str(cpi_efficiency)]
 
 save_results_to_file(results_list, qr.results_path)
 print(qr.results_path)

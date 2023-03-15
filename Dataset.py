@@ -3,8 +3,12 @@ import numpy as np
 
 
 class Dataset():
-
+	'''
+	Class containing all the data pre-processing steps for the train, calibration and test data and to create mini-batches of training data
+	'''
 	def __init__(self, property_idx, comb_flag, trainset_fn, testset_fn, calibrset_fn, alpha = 0.1, n_train_states = 2000, n_cal_states = 1000, n_test_states = 100, hist_size = 50, test_hist_size = 2000, multiplier = 1):
+		super(Dataset, self).__init__()
+
 		self.trainset_fn = trainset_fn
 		self.testset_fn = testset_fn
 		self.calibrset_fn = calibrset_fn
@@ -19,9 +23,12 @@ class Dataset():
 		self.comb_flag = comb_flag
 		
 	def load_data(self):
+		
 		self.load_train_data()
-		self.load_test_data()
+		eqr_width = self.load_test_data()
 		self.load_calibration_data()
+
+		return eqr_width
 		
 	def load_train_data(self):
 
@@ -101,10 +108,11 @@ class Dataset():
 			else:
 				L_test[i, 1] = 1
 				C_test[i] = 1
-
-		print('Test set avg interval width: ', np.mean(widths))
+		eqr_width = np.mean(widths)
 		self.L_test = L_test
 		self.C_test = C_test
+
+		return eqr_width
 
 	def load_calibration_data(self):
 

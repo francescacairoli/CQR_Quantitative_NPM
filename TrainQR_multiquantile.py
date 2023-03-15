@@ -1,7 +1,7 @@
-from QR import QR
-import numpy as np
 import os 
 import pickle
+import numpy as np
+
 import torch
 from torch.autograd import Variable
 from torch.optim.lr_scheduler import ExponentialLR
@@ -9,25 +9,33 @@ import matplotlib.pyplot as plt
 plt.rcParams.update({'font.size': 22})
 from tqdm import tqdm
 
+from QR import *
+
 cuda = True if torch.cuda.is_available() else False
 FloatTensor = torch.cuda.FloatTensor if cuda else torch.FloatTensor
 
 
 class TrainQR():
-
+	'''
+	Class containing all the necessary methods to train a quantile regressor (QR) at level quantiles
+	'''
 	def __init__(self, model_name, dataset, idx = None, cal_hist_size = 50, test_hist_size = 2000, quantiles = [0.05, 0.95], opt = "Adam", n_hidden = 50, xavier_flag = False, scheduler_flag = False, drop_out_rate = 0.1):
-
+		super(TrainQR, self).__init__()
+		
 		self.model_name = model_name
 		self.dataset = dataset
 		
 		self.alpha = 0.1
 		if idx:
 			self.idx = idx
-			self.results_path = "Models/"+self.model_name+"/QR_results/ID_"+idx
+			self.models_path = "Models/"+self.model_name+"/ID_"+idx
+			self.results_path = "Results/"+self.model_name+"/ID_"+idx
 		else:
 			rnd_idx = str(np.random.randint(0,100000))
 			self.idx = rnd_idx
-			self.results_path = "Models/"+self.model_name+"/QR_results/ID_"+rnd_idx
+			self.models_path = "Models/"+self.model_name+"/ID_"+rnd_idx
+			self.results_path = "Results/"+self.model_name+"/ID_"+rnd_idx
+		os.makedirs(self.models_path, exist_ok=True)
 		os.makedirs(self.results_path, exist_ok=True)
 
 		self.cal_hist_size = cal_hist_size
@@ -145,17 +153,17 @@ class TrainQR():
 		plt.title("QR loss")
 		plt.legend()
 		plt.tight_layout()
-		fig_loss.savefig(self.results_path+"/qr_losses.png")
+		fig_loss.savefig(self.models_path+"/qr_losses.png")
 		plt.close()
 
 
 	def save_model(self):
-		self.net_path = self.results_path+"/qr_{}epochs.pt".format(self.n_epochs)
+		self.net_path = self.models_path+"/qr_{}epochs.pt".format(self.n_epochs)
 		torch.save(self.qr_model, self.net_path)
 
 
 	def load_model(self, n_epochs):
-		self.net_path = self.results_path+"/qr_{}epochs.pt".format(n_epochs)
+		self.net_path = self.models_path+"/qr_{}epochs.pt".format(n_epochs)
 		self.qr_model = torch.load(self.net_path)
 		self.qr_model.eval()
 		if cuda:

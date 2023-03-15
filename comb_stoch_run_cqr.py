@@ -1,6 +1,7 @@
 import copy
 import time
 import argparse
+import pandas as pd
 from QR import * # NN architecture to learn quantiles
 from CQR import *
 from utils import * # import-export methods
@@ -39,37 +40,42 @@ comb_pairs = []
 for i in range(args.model_dim):
 	for j in range(i+1, args.model_dim):
 		comb_pairs.append((i,j))
+
 print('Combination pairs = ', comb_pairs)
 
 prop_idxs = comb_pairs[args.comb_idx]
 
 
-print("MODEL = ", model_name, "Dim = ", args.model_dim)
+print("Model name = ", model_name, "Model dim = ", args.model_dim)
 
-trainset_fn, calibrset_fn, testset_fn, ds_details = import_filenames_w_dim(model_name, args.model_dim, extra='K')
+
+trainset_fn, calibrset_fn, testset_fn, ds_details = import_filenames_w_dim(model_name, args.model_dim)
 n_train_states, n_cal_states, n_test_states, cal_hist_size, test_hist_size = ds_details
 
 print("qr_training_flag = ", args.qr_training_flag)
-
+print("comb_calibr_flag = ", args.comb_calibr_flag)
 
 quantiles = np.array([args.alpha/2, 0.5,  1-args.alpha/2]) # LB, MEDIAN, UB
 nb_quantiles = len(quantiles)
-
 
 print(f"Property idxs = {prop_idxs}")
 
 idx_str1 = f'CQR_#{prop_idxs[0]}_Dropout{args.dropout_rate}_multiout_opt=_{args.n_hidden}hidden_{args.n_epochs}epochs_{nb_quantiles}quantiles_3layers_alpha{args.alpha}_lr{args.lr}'
 idx_str2 = f'CQR_#{prop_idxs[1]}_Dropout{args.dropout_rate}_multiout_opt=_{args.n_hidden}hidden_{args.n_epochs}epochs_{nb_quantiles}quantiles_3layers_alpha{args.alpha}_lr{args.lr}'
 
-
+# import data
 dataset = Dataset(property_idx=args.comb_idx, comb_flag=True, trainset_fn=trainset_fn, testset_fn=testset_fn, 
 			calibrset_fn=calibrset_fn, alpha=args.alpha, n_train_states=n_train_states, n_cal_states=n_cal_states, 
 			n_test_states=n_test_states, hist_size=cal_hist_size, test_hist_size=test_hist_size)
-dataset.load_data()
+eqr_width = dataset.load_data()
 
 if args.comb_calibr_flag:
 
-	# Train the QR
+	'''
+	Conjunction of CPI
+	'''
+
+	# Load the pre-trained models specific to each of the two properties (qr1 and qr2)
 	qr1 = TrainQR(model_name, dataset, idx = idx_str1, cal_hist_size  = cal_hist_size, test_hist_size = test_hist_size, quantiles = quantiles, opt = args.opt, n_hidden = args.n_hidden, xavier_flag = args.xavier_flag, scheduler_flag = args.scheduler_flag, drop_out_rate = args.dropout_rate)
 	qr1.load_model(args.n_epochs)
 	qr2 = TrainQR(model_name, dataset, idx = idx_str2, cal_hist_size  = cal_hist_size, test_hist_size = test_hist_size, quantiles = quantiles, opt = args.opt, n_hidden = args.n_hidden, xavier_flag = args.xavier_flag, scheduler_flag = args.scheduler_flag, drop_out_rate = args.dropout_rate)
@@ -82,7 +88,7 @@ if args.comb_calibr_flag:
 	cpi_test = cqr.get_cpi(dataset.X_test, pi_flag = False)
 
 
-	cqr.plot_results(dataset.R_test, cpi_test, "CQR_interval", qr1.results_path, extra_info=f'_comb{args.comb_idx}_pair={prop_idxs}')
+	cqr.plot_comb_errorbars(dataset.R_test, cpi_test, "predictive intervals", qr1.results_path, extra_info=f'pred_interval_comb{args.comb_idx}_pair={prop_idxs}')
 	cpi_coverage, cpi_efficiency = cqr.get_coverage_efficiency(dataset.R_test, cpi_test)
 	print("cpi_coverage = ", cpi_coverage, "cpi_efficiency = ", cpi_efficiency)
 	cpi_correct, cpi_uncertain, cpi_wrong, cpi_fp = cqr.compute_accuracy_and_uncertainty(cpi_test, dataset.L_test)
@@ -108,16 +114,34 @@ if args.comb_calibr_flag:
 	print("union_cpi_coverage = ", union_coverage, "union_cpi_efficiency = ", union_efficiency)
 
 
-	results_list = ["\n Quantiles = ", str(quantiles), "\n Id1 = ", idx_str1,"\n Id2 = ", idx_str2, "\n tau = ", str(cqr.tau),
-	"\n cpi_coverage = ", str(cpi_coverage), "\n cpi_efficiency = ", str(cpi_efficiency),
+	results_list = ["Id1 = ", idx_str1,"\nId2 = ", idx_str2, "\n", "\n Quantiles = ", str(quantiles),"\n tau = ", str(cqr.tau),
+	"\n",
 	"\n cpi_correct = ", str(cpi_correct), "\n cpi_uncertain = ", str(cpi_uncertain), "\n cpi_wrong = ", str(cpi_wrong), "\n cpi_fp = ", str(cpi_fp),
+	"\n cpi_coverage = ", str(cpi_coverage), "\n cpi_efficiency = ", str(cpi_efficiency),
+	"\n",
 	"\n union_cpi_coverage = ", str(union_coverage), "\n union_cpi_efficiency = ", str(union_efficiency)]
 
 	save_results_to_file(results_list, qr1.results_path, extra_info=f'_comb{args.comb_idx}_pair={prop_idxs}')
 	print(qr1.results_path)
 
+	d = {model_name:['MIN', 'UNION'],'correct': [cpi_correct, '-'],
+		'uncertain': [cpi_uncertain, '-'],
+		'wrong':[cpi_wrong, '-'], 'FP':[cpi_fp, '-'],
+		'coverage':[cpi_coverage, union_coverage],
+		'efficiency': [cpi_efficiency,union_efficiency],
+		}
+	df = pd.DataFrame(data=d)
+	print('Table of results:\n ',df)
+	out_tables_path = f"out/tables/{args.model_prefix}"
+	os.makedirs(out_tables_path, exist_ok=True)
+	df.to_csv(out_tables_path+f"/{model_name}_{prop_idxs}_conj_results.csv", index=False)
+
+
 else: # train the CQR over the combined property
 
+	'''
+	CQR trained over the combined propery
+	'''
 
 	idx_str12 = f'CQR_#{prop_idxs[0]}{prop_idxs[1]}_Dropout{args.dropout_rate}_multiout_opt=_{args.n_hidden}hidden_{args.n_epochs}epochs_{nb_quantiles}quantiles_3layers_alpha{args.alpha}_lr{args.lr}'
 
@@ -140,26 +164,39 @@ else: # train the CQR over the combined property
 
 	print("shape: ", cpi_test.shape, pi_test.shape)
 
-	cqr12.plot_results(dataset.R_test, pi_test, "QR_interval", qr12.results_path)
 	pi_coverage, pi_efficiency = cqr12.get_coverage_efficiency(dataset.R_test, pi_test)
 	print("pi_coverage = ", pi_coverage, "pi_efficiency = ", pi_efficiency)
 	pi_correct, pi_uncertain, pi_wrong, pi_fp = cqr12.compute_accuracy_and_uncertainty(pi_test, dataset.L_test)
 	print("pi_correct = ", pi_correct, "pi_uncertain = ", pi_uncertain, "pi_wrong = ", pi_wrong, "pi_fp = ", pi_fp)
 
-	cqr12.plot_results(dataset.R_test, cpi_test, "CQR_interval", qr12.results_path)
 	cpi_coverage, cpi_efficiency = cqr12.get_coverage_efficiency(dataset.R_test, cpi_test)
 	print("cpi_coverage = ", cpi_coverage, "cpi_efficiency = ", cpi_efficiency)
 	cpi_correct, cpi_uncertain, cpi_wrong, cpi_fp = cqr12.compute_accuracy_and_uncertainty(cpi_test, dataset.L_test)
 	print("cpi_correct = ", cpi_correct, "cpi_uncertain = ", cpi_uncertain, "cpi_wrong = ", cpi_wrong, "cpi_fp = ", cpi_fp)
 
+	cqr12.plot_errorbars(dataset.R_test, pi_test, cpi_test, "predictive intervals", qr12.results_path, 'pred_interval')
 
-	results_list = ["\n Quantiles = ", str(quantiles), "\n Id = ", idx_str12, "\n tau = ", str(cqr12.tau),
-	"\n pi_coverage = ", str(pi_coverage), "\n pi_efficiency = ", str(pi_efficiency),
-	"\n pi_correct = ", str(pi_correct), "\n pi_uncertain = ", str(pi_uncertain), "\n pi_wrong = ", str(pi_wrong),"\n pi_fp = ", str(pi_fp),
-	"\n cpi_coverage = ", str(cpi_coverage), "\n cpi_efficiency = ", str(cpi_efficiency),
-	"\n cpi_correct = ", str(cpi_correct), "\n cpi_uncertain = ", str(cpi_uncertain), "\n cpi_wrong = ", str(cpi_wrong),"\n cpi_fp = ", str(cpi_fp)]
+	results_list = ["Id = ", idx_str12, "\n", "\n Quantiles = ", str(quantiles), "\n tau = ", str(cqr12.tau), "\n",
+	"\n pi_correct = ", str(pi_correct), "\n pi_uncertain = ", str(pi_uncertain), "\n pi_wrong = ", str(pi_wrong),"\n pi_fp = ", str(pi_fp),"\n pi_coverage = ", str(pi_coverage), "\n pi_efficiency = ", str(pi_efficiency),
+	"\n",
+	"\n eqr_width = ", str(eqr_width),
+	"\n",
+	"\n cpi_correct = ", str(cpi_correct), "\n cpi_uncertain = ", str(cpi_uncertain), "\n cpi_wrong = ", str(cpi_wrong),"\n cpi_fp = ", str(cpi_fp),"\n cpi_coverage = ", str(cpi_coverage), "\n cpi_efficiency = ", str(cpi_efficiency)]
 
 	save_results_to_file(results_list, qr12.results_path)
 	print(qr12.results_path)
+
+	d = {model_name:['QR', 'CQR'],'correct': [pi_correct, cpi_correct],
+		'uncertain': [pi_uncertain, cpi_uncertain],
+		'wrong':[pi_wrong,cpi_wrong], 'FP':[pi_fp,pi_fp],
+		'coverage':[pi_coverage, pi_coverage],
+		'efficiency': [pi_efficiency, cpi_efficiency],
+		'EQR width': [eqr_width, '-']}
+	df = pd.DataFrame(data=d)
+	print('Table of results:\n ',df)
+	out_tables_path = f"out/tables/{args.model_prefix}"
+	os.makedirs(out_tables_path, exist_ok=True)
+	df.to_csv(out_tables_path+f"/{model_name}_{prop_idxs}_results.csv", index=False)
+
 
 

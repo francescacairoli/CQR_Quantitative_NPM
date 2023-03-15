@@ -1,7 +1,9 @@
+import sys
+sys.path.append(".")
 import pickle
 import argparse
 from utils import * # import-export methods
-from MultiRoomHeating import *
+from data_generation.MultiRoomHeating import *
 
 from QR import * # NN architecture to learn quantiles
 from CQR import *
@@ -22,10 +24,17 @@ parser.add_argument("--opt", default="Adam", type=str, help="Optimizer")
 parser.add_argument("--dropout_rate", default=0.1, type=float, help="Drop-out rate")
 parser.add_argument("--alpha", default=0.1, type=float, help="quantiles significance level")
 parser.add_argument("--property_idx", default=0, type=int, help="Identifier of the property to monitor (-1 denotes that the property is wrt all variables)")
+parser.add_argument("--seed", default=0, type=int, help='set random seed')
 args = parser.parse_args()
+
+# for reproducibility
+np.random.seed(args.seed)
+torch.manual_seed(args.seed)
+
 
 nb_trajs_per_state = 500
 n_steps = 20
+
 
 model_name = args.model_prefix+str(args.model_dim)
 
@@ -37,12 +46,14 @@ nb_quantiles = len(quantiles)
 
 idx_str = f'CQR_#{args.property_idx}_Dropout{args.dropout_rate}_multiout_opt=_{args.n_hidden}hidden_{args.n_epochs}epochs_{nb_quantiles}quantiles_3layers_alpha{args.alpha}_lr{args.lr}'
 
-print(f"Results folder = {idx_str}")
+print(f"Models folder = Models/{model_name}/ID_{idx_str}")
+print(f"Results folder = Results/{model_name}/ID_{idx_str}")
 
+# import data
 dataset = Dataset(property_idx=args.property_idx, comb_flag=False, trainset_fn=trainset_fn, testset_fn=testset_fn, 
 			calibrset_fn=calibrset_fn, alpha=args.alpha, n_train_states=n_train_states, n_cal_states=n_cal_states, 
 			n_test_states=n_test_states, hist_size=cal_hist_size, test_hist_size=test_hist_size)
-dataset.load_data()
+_ = dataset.load_data()
 
 file = open(trainset_fn, 'rb')
 data = pickle.load(file)
@@ -60,9 +71,11 @@ qr = TrainQR(model_name, dataset, idx = idx_str, cal_hist_size  = cal_hist_size,
 qr.initialize()
 qr.load_model(args.n_epochs)
 cqr = CQR(dataset.X_cal, dataset.R_cal, qr.qr_model, test_hist_size = test_hist_size, cal_hist_size = cal_hist_size)
-	
+
+# randomly sample an initial state
 state = model.sample_rnd_states(1) #sample an initial state
 
+# unrull a single evolution from this initial state
 running_traj = model.gen_trajectories(state, 1)
 
 running_traj_scaled = -1+2*(running_traj-xmin)/(xmax-xmin)
@@ -77,6 +90,7 @@ xtime_rep = []
 xline_rep_out = []
 
 for t in range(n_steps):
+	# for each state in the trajectory compute the empirical distribution of robustness values
 	trajs = model.gen_trajectories([running_traj[0][t]], nb_trajs_per_state)
 
 	trajs_scaled = -1+2*(trajs-xmin)/(xmax-xmin)
@@ -95,11 +109,12 @@ for t in range(n_steps):
 			xline_rep_out.append(t)
 	list_robs[t] = robs
 
+	# apply CQR to each state in the trajectory
 	cpi_test, pi_test = cqr.get_cpi(state_scaled, pi_flag = True)
 	list_cpi[t] = cpi_test
 	list_pi[t] = pi_test
 
-
+# analyze the sequential performances
 cov, eff = cqr.get_coverage_efficiency(list_robs.flatten(), list_pi)
 print('pi sequential coverage = ',cov)
 print('pi sequential efficiency = ',eff)
@@ -129,6 +144,6 @@ plt.ylabel('robustness')
 plt.grid(True)
 plt.legend()
 plt.tight_layout()
-fig.savefig(qr.results_path+"/sequential_evaluation.png")
+fig.savefig(qr.results_path+f"/sequential_evaluation_seed={args.seed}.png")
 plt.close()
 
