@@ -8,9 +8,13 @@ LOGS="out/logs/"
 mkdir -p $LOGS
 
 
+echo "# SINGLE PROPERTY EXPERIMENTS #"
+
+
 DATE=$(date +%Y-%m-%d)
 TIME=$(date +%H:%M:%S)
-OUT="${LOGS}${DATE}_${TIME}_out.txt"
+OUT="${LOGS}AAD_${DATE}_${TIME}_out.txt"
+
 
 # AAD
 echo "AAD"
@@ -18,7 +22,7 @@ python stoch_run_cqr.py --qr_training_flag False --property_idx -1 --model_prefi
 
 DATE=$(date +%Y-%m-%d)
 TIME=$(date +%H:%M:%S)
-OUT="${LOGS}${DATE}_${TIME}_out.txt"
+OUT="${LOGS}AAD-F_${DATE}_${TIME}_out.txt"
 
 # AAD-F
 echo "AAD-F"
@@ -26,7 +30,7 @@ python stoch_run_cqr.py --qr_training_flag False --property_idx -1 --model_prefi
 
 DATE=$(date +%Y-%m-%d)
 TIME=$(date +%H:%M:%S)
-OUT="${LOGS}${DATE}_${TIME}_out.txt"
+OUT="${LOGS}EHT_${DATE}_${TIME}_out.txt"
 
 # EHT
 echo "EHT"
@@ -34,7 +38,7 @@ python stoch_run_cqr.py --qr_training_flag False --property_idx -1 --model_prefi
 
 DATE=$(date +%Y-%m-%d)
 TIME=$(date +%H:%M:%S)
-OUT="${LOGS}${DATE}_${TIME}_out.txt"
+OUT="${LOGS}MRH2_${DATE}_${TIME}_out.txt"
 
 MODEL_PREFIX="MRH"
 # MRH 2
@@ -46,7 +50,7 @@ done
 
 DATE=$(date +%Y-%m-%d)
 TIME=$(date +%H:%M:%S)
-OUT="${LOGS}${DATE}_${TIME}_out.txt"
+OUT="${LOGS}MRH4_${DATE}_${TIME}_out.txt"
 
 # MRH 4
 for i in 0 1 2 3
@@ -57,7 +61,7 @@ done
 
 DATE=$(date +%Y-%m-%d)
 TIME=$(date +%H:%M:%S)
-OUT="${LOGS}${DATE}_${TIME}_out.txt"
+OUT="${LOGS}MRH8_${DATE}_${TIME}_out.txt"
 
 # MRH 8
 for i in 0 1 2 3 4 5 6 7
@@ -68,7 +72,7 @@ done
 
 DATE=$(date +%Y-%m-%d)
 TIME=$(date +%H:%M:%S)
-OUT="${LOGS}${DATE}_${TIME}_out.txt"
+OUT="${LOGS}GRN2_${DATE}_${TIME}_out.txt"
 
 MODEL_PREFIX="GRN"
 # GRN 2
@@ -80,7 +84,7 @@ done
 
 DATE=$(date +%Y-%m-%d)
 TIME=$(date +%H:%M:%S)
-OUT="${LOGS}${DATE}_${TIME}_out.txt"
+OUT="${LOGS}GRN4_${DATE}_${TIME}_out.txt"
 
 # GRN 4
 for i in 0 1 2 3
@@ -91,10 +95,10 @@ done
 
 DATE=$(date +%Y-%m-%d)
 TIME=$(date +%H:%M:%S)
-OUT="${LOGS}${DATE}_${TIME}_out.txt"
+OUT="${LOGS}GRN6_${DATE}_${TIME}_out.txt"
 
 # GRN 6
-for i in 0 1 2 3 4 5 6 7
+for i in 0 1 2 3 4 5
 do
 	echo $MODEL_PREFIX i: $i
 	python stoch_run_cqr.py --qr_training_flag False --property_idx $i --model_prefix $MODEL_PREFIX --model_dim 6 >> $OUT 2>&1
